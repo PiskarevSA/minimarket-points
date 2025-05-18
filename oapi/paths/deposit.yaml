@@ -1,0 +1,42 @@
+post:
+  operationId: deposit
+  description: Зачисление бонусов
+  tags:
+    - Points
+  security:
+    - bearerAuth: []
+    - cookieAuth: []
+  requestBody:
+      description: Данные для зачисления бонусов
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../objects/DepositRequest.yaml
+  responses:
+    "200":
+      description: Бонусы успешно зачислены
+      content:
+        application/json:
+          schema:
+            $ref: ../objects/DepositResponse.yaml
+    "400":
+      description: Предоставлены данные неправильного формата
+      content:
+        application/json:
+          schema:
+            $ref: ../errors/ValidationError.yaml
+    "401":
+      description: Ошибка аутентификации
+    "422":
+      description: Нарушены бизнес-правила
+      content:
+        application/json:
+          schema:
+            $ref: ../errors/DomainError.yaml
+    "500":
+      description: Внутренняя ошибка сервера
+      content:
+        application/json:
+          schema:
+            $ref: ../errors/InternalServerError.yaml

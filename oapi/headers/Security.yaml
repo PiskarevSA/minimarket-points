@@ -1,0 +1,10 @@
+bearerAuth:
+  description: JWT в заголовке Authorization
+  type: http
+  scheme: bearer
+  bearerFormat: JWT
+cookieAuth:
+  description: HTTP-only кука с JWT
+  type: apiKey
+  in: cookie
+  name: access_token

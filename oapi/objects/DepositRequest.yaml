@@ -1,0 +1,23 @@
+type: object
+properties:
+  userId:
+    description: Уникальный идентификатор пользователя
+    type: string
+    format: uuid
+    example: e956b175-794c-4f71-960b-a5d00b27a2e2
+  orderNumber:
+    description: Номер заказа за который будут начислены бонусы
+    type: string
+    example: "2377225624"
+    minLength: 10
+    maxLength: 10
+  amount:
+    description: Сумма бонусов к зачислению
+    type: string
+    format: decimal
+    minimum: 1
+    example: "751"
+required:
+  - userId
+  - amount
+x-go-name: DepositRequest

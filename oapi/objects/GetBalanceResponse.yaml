@@ -1,0 +1,24 @@
+type: object
+properties:
+  available:
+    description: Сумма бонусов доступная для траты
+    example: "500.532"
+    type: string
+    format: decimal
+    minimum: 0
+  withdrawn:
+    description: Сумма бонусов, которая была потрачена за все время 
+    example: "42.1"
+    type: string
+    format: decimal
+    minimum: 0
+  updatedAt:
+    description: Дата и время последнего обновления бонусного баланса
+    example: 2020-02-12T07:20:50.52Z
+    type: string
+    format: date-time
+required:
+  - available
+  - withdrawn
+  - updatedAt
+x-go-name: GetBalanceResponse

@@ -1,0 +1,34 @@
+type: array
+minItems: 0
+items:
+  type: object
+  properties:
+    id:
+      description: Номер транзакции
+      example: 31
+      type: integer
+      minimum: 1
+      x-go-type: int32
+    orderNumber:
+      description: Номер заказа за который были списаны бонусы
+      example: "2377225624"
+      type: string
+      minLength: 10
+      maxLength: 10
+    amount:
+      description: Сумма списанных бонусов
+      example: "751"
+      type: string
+      format: decimal
+      minimum: 1
+    proccessedAt:
+      description: Дата и время списания бонусов
+      example: 2020-02-12T07:20:50.52Z
+      type: string
+      format: date-time
+  required:
+    - id
+    - orderNumber
+    - amount
+    - proccessedAt
+x-go-name: GetWithdrawalsResponse

@@ -1,0 +1,23 @@
+get:
+  operationId: getBalance
+  description: Получение бонусного баланса
+  tags:
+    - Points
+  security:
+    - bearerAuth: []
+    - cookieAuth: []
+  responses:
+    "200":
+      description: Бонусный баланс получен
+      content:
+        application/json:
+          schema:
+            $ref: ../objects/GetBalanceResponse.yaml
+    "401":
+      description: Ошибка аутентификации
+    "500":
+      description: Внутренняя ошибка сервера
+      content:
+        application/json:
+          schema:
+            $ref: ../errors/InternalServerError.yaml

@@ -1,0 +1,10 @@
+type: object
+properties:
+  proccessedAt:
+    description: Дата и время зачисления бонусов
+    example: 2020-02-12T07:20:50.52Z
+    type: string
+    format: date-time
+required:
+  - proccessedAt
+x-go-name: DepositResponse

@@ -1,0 +1,18 @@
+type: object
+properties:
+  orderNumber:
+    description: Номер заказа за который будут списаны бонусы
+    example: "2377225624"
+    type: string
+    minLength: 10
+    maxLength: 10
+  amount:
+    description: Сумма бонусов к списанию
+    example: "751"
+    type: string
+    format: decimal
+    minimum: 1
+required:
+  - orderNumber
+  - amount
+x-go-name: WithdrawRequest

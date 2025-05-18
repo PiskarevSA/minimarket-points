@@ -1,0 +1,375 @@
+openapi: 3.0.0
+info:
+  title: API работы с бонусами
+  version: 1.0.0
+  description: ' '
+  contact:
+    name: ООО "Минимаркет"
+    email: minimarket@admin.com
+    url: https://github.com/PiskarevSA/minimarket-auth
+servers:
+  - url: https://127.0.0.1:8616
+    description: Локальный сервер для тестов
+tags:
+  - name: Points
+paths:
+  /api/user/balance:
+    get:
+      operationId: getBalance
+      description: Получение бонусного баланса
+      tags:
+        - Points
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Бонусный баланс получен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetBalanceResponse'
+        '401':
+          description: Ошибка аутентификации
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+  /api/user/balance/deposit:
+    post:
+      operationId: deposit
+      description: Зачисление бонусов
+      tags:
+        - Points
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        description: Данные для зачисления бонусов
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepositRequest'
+      responses:
+        '200':
+          description: Бонусы успешно зачислены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepositResponse'
+        '400':
+          description: Предоставлены данные неправильного формата
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Ошибка аутентификации
+        '422':
+          description: Нарушены бизнес-правила
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+  /api/user/balance/withdraw:
+    post:
+      operationId: withdraw
+      description: Списание бонусов
+      tags:
+        - Points
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithdrawRequest'
+      responses:
+        '200':
+          description: Бонусы успешно списаны
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WithdrawResponse'
+        '400':
+          description: Предоставлены данные неправильного формата
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Ошибка аутентификации
+        '422':
+          description: Нарушены бизнес-правила
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+              example:
+                code: D1157
+                message: insufficient balance"
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+  /api/user/withdrawals:
+    get:
+      operationId: getWithdrawals
+      description: Получение операций по списанию бонусов
+      tags:
+        - Points
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: offset
+          in: query
+          description: Смещение, от которого начинается выборка записей
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+            example: 0
+            x-go-type: int32
+        - name: limit
+          in: query
+          description: Максимальное число операций списания бонусов в ответе
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 35
+            default: 10
+            example: 20
+            x-go-type: int32
+      responses:
+        '200':
+          description: Операции списания получены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetWithdrawalsResponse'
+        '400':
+          description: Предоставлены данные неправильного формата
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Ошибка аутентификации
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+components:
+  securitySchemes:
+    bearerAuth:
+      description: JWT в заголовке Authorization
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    cookieAuth:
+      description: HTTP-only кука с JWT
+      type: apiKey
+      in: cookie
+      name: access_token
+  schemas:
+    GetBalanceResponse:
+      type: object
+      properties:
+        available:
+          description: Сумма бонусов доступная для траты
+          example: '500.532'
+          type: string
+          format: decimal
+          minimum: 0
+        withdrawn:
+          description: Сумма бонусов, которая была потрачена за все время
+          example: '42.1'
+          type: string
+          format: decimal
+          minimum: 0
+        updatedAt:
+          description: Дата и время последнего обновления бонусного баланса
+          example: '2020-02-12T07:20:50.52Z'
+          type: string
+          format: date-time
+      required:
+        - available
+        - withdrawn
+        - updatedAt
+      x-go-name: GetBalanceResponse
+    InternalServerError:
+      type: object
+      properties:
+        code:
+          description: Уникальный код серверной ошибки
+          type: string
+          enum:
+            - S1394
+        message:
+          description: Человеко‑читаемое сообщение об ошибке
+          type: string
+          enum:
+            - internal error
+      required:
+        - code
+        - message
+      x-go-name: InternalServerErrorResponse
+    DepositRequest:
+      type: object
+      properties:
+        userId:
+          description: Уникальный идентификатор пользователя
+          type: string
+          format: uuid
+          example: e956b175-794c-4f71-960b-a5d00b27a2e2
+        orderNumber:
+          description: Номер заказа за который будут начислены бонусы
+          type: string
+          example: '2377225624'
+          minLength: 10
+          maxLength: 10
+        amount:
+          description: Сумма бонусов к зачислению
+          type: string
+          format: decimal
+          minimum: 1
+          example: '751'
+      required:
+        - userId
+        - amount
+      x-go-name: DepositRequest
+    DepositResponse:
+      type: object
+      properties:
+        proccessedAt:
+          description: Дата и время зачисления бонусов
+          example: '2020-02-12T07:20:50.52Z'
+          type: string
+          format: date-time
+      required:
+        - proccessedAt
+      x-go-name: DepositResponse
+    ValidationError:
+      type: object
+      properties:
+        code:
+          description: Уникальный код ошибки валидацииы
+          type: string
+          enum:
+            - V1512
+            - V1431
+          example: V1512
+        field:
+          description: Имя поля с данными неверного формата
+          example: amount
+          type: string
+        message:
+          description: Человеко‑читаемое сообщение об ошибке
+          example: must be valid decimal string
+          type: string
+      required:
+        - code
+        - field
+        - message
+      x-go-name: ValidationErrorResponse
+    DomainError:
+      type: object
+      properties:
+        code:
+          description: Уникальный код доменной ошибки
+          type: string
+          enum:
+            - D1157
+            - D1164
+          example: D1157
+        message:
+          description: Человеко‑читаемое сообщение об ошибке
+          example: insufficient balance
+          type: string
+      required:
+        - code
+        - message
+      x-go-name: DomainErrorResponse
+    WithdrawRequest:
+      type: object
+      properties:
+        orderNumber:
+          description: Номер заказа за который будут списаны бонусы
+          example: '2377225624'
+          type: string
+          minLength: 10
+          maxLength: 10
+        amount:
+          description: Сумма бонусов к списанию
+          example: '751'
+          type: string
+          format: decimal
+          minimum: 1
+      required:
+        - orderNumber
+        - amount
+      x-go-name: WithdrawRequest
+    WithdrawResponse:
+      type: object
+      properties:
+        proccessedAt:
+          description: Дата и время списания бонусов
+          example: '2020-02-12T07:20:50.52Z'
+          type: string
+          format: date-time
+      required:
+        - proccessedAt
+      x-go-name: WithdrawResponse
+    GetWithdrawalsResponse:
+      type: array
+      minItems: 0
+      items:
+        type: object
+        properties:
+          id:
+            description: Номер транзакции
+            example: 31
+            type: integer
+            minimum: 1
+            x-go-type: int32
+          orderNumber:
+            description: Номер заказа за который были списаны бонусы
+            example: '2377225624'
+            type: string
+            minLength: 10
+            maxLength: 10
+          amount:
+            description: Сумма списанных бонусов
+            example: '751'
+            type: string
+            format: decimal
+            minimum: 1
+          proccessedAt:
+            description: Дата и время списания бонусов
+            example: '2020-02-12T07:20:50.52Z'
+            type: string
+            format: date-time
+        required:
+          - id
+          - orderNumber
+          - amount
+          - proccessedAt
+      x-go-name: GetWithdrawalsResponse

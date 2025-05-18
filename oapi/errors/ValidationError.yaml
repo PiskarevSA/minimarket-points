@@ -1,0 +1,22 @@
+type: object
+properties:
+  code:
+    description: Уникальный код ошибки валидацииы
+    type: string
+    enum:
+      - V1512 # invalid order number
+      - V1431 # invalid amount
+    example: V1512
+  field:
+    description: Имя поля с данными неверного формата 
+    example: amount
+    type: string
+  message:
+    description: Человеко‑читаемое сообщение об ошибке
+    example: must be valid decimal string
+    type: string
+required:
+  - code
+  - field
+  - message
+x-go-name: ValidationErrorResponse
