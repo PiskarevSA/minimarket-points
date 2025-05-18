@@ -27,5 +27,5 @@ sql:
         sql_package: pgx/v5
         sql_driver: github.com/jackc/pgx/v5
 
-        package: sqlc
-        out: internal/gen/sqlc
+        package: postgresql
+        out: internal/gen/sqlc/postgresql

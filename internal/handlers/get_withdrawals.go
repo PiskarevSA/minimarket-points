@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/PiskarevSA/minimarket-points/internal/dto"
 	"github.com/PiskarevSA/minimarket-points/internal/gen/oapi"
 	"github.com/PiskarevSA/minimarket-points/internal/usecases"
 )
@@ -29,7 +30,7 @@ func (h *Handlers) GetWithdrawals(
 		return withdrawals500JSONResponse, nil
 	}
 
-	_, err = h.getWithdrawalsUsecase.Do(
+	txs, err := h.getWithdrawalsUsecase.Do(
 		ctx,
 		userId,
 		request.Params.Limit,
@@ -48,5 +49,7 @@ func (h *Handlers) GetWithdrawals(
 		return withdrawals500JSONResponse, nil
 	}
 
-	return nil, nil
+	getWithdrawals := dto.TransactionsToGetWithdrawals(txs)
+
+	return oapi.GetWithdrawals200JSONResponse(getWithdrawals), nil
 }

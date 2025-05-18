@@ -18,7 +18,10 @@ type Transaction struct {
 	proccessedAt time.Time
 }
 
-var NilTransaction = Transaction{}
+var (
+	NilTransaction  = Transaction{}
+	NilTransactions = []Transaction{}
+)
 
 func NewTransaction[AmountT string | pgtype.Numeric](
 	id int32,
@@ -76,4 +79,28 @@ func (t Transaction) Amount() objects.Amount {
 
 func (t Transaction) ProccessedAt() time.Time {
 	return t.proccessedAt
+}
+
+func (t *Transaction) SetId(id int32) {
+	t.id = id
+}
+
+func (t *Transaction) SetUserId(userId uuid.UUID) {
+	t.userId = userId
+}
+
+func (t *Transaction) SetOrderNumber(orderNumber objects.OrderNumber) {
+	t.orderNumber = orderNumber
+}
+
+func (t *Transaction) SetOperation(operation objects.Operation) {
+	t.operation = operation
+}
+
+func (t *Transaction) SetAmount(amount objects.Amount) {
+	t.amount = amount
+}
+
+func (t *Transaction) SetProcessedAt(processedAt time.Time) {
+	t.proccessedAt = processedAt
 }

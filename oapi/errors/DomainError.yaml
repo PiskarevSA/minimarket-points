@@ -5,7 +5,6 @@ properties:
     type: string
     enum:
       - D1157 # insufficient balance
-      - D1164 # invalid limit value
     example: D1157
   message:
     description: Человеко‑читаемое сообщение об ошибке

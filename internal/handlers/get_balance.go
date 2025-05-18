@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/PiskarevSA/minimarket-points/internal/dto"
 	"github.com/PiskarevSA/minimarket-points/internal/gen/oapi"
 )
 
@@ -33,8 +33,7 @@ func (h *Handlers) GetBalance(
 		return getBalance500JSONResponse, nil
 	}
 
-	fmt.Println(balance)
+	getBalance := dto.BalanceToGetBalance(balance)
 
-	return nil, nil
-	// return dto.BalanceToGetBalance200Response(balance), nil
+	return oapi.GetBalance200JSONResponse(getBalance), nil
 }

@@ -1,0 +1,12 @@
+template: matryer
+
+all: true
+recursive: true
+exclude-subpkg-regex:
+- pkg
+- oapi$
+- sqlc
+
+packages:
+  github.com/PiskarevSA/minimarket-points:
+  
