@@ -117,7 +117,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/DomainError'
               example:
-                code: D1157
+                code: D1215
                 message: insufficient balance"
         '500':
           description: Внутренняя ошибка сервера
@@ -297,9 +297,9 @@ components:
           description: Уникальный код доменной ошибки
           type: string
           enum:
-            - D1157
+            - D1215
             - D1164
-          example: D1157
+          example: D1215
         message:
           description: Человеко‑читаемое сообщение об ошибке
           example: insufficient balance

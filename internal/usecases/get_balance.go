@@ -3,12 +3,12 @@ package usecases
 import (
 	"context"
 	"errors"
-	"time"
+
+	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 
 	"github.com/PiskarevSA/minimarket-points/internal/domain/objects"
 	"github.com/PiskarevSA/minimarket-points/internal/repo"
-	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 )
 
 type GetBalanceRepo interface {
@@ -39,7 +39,7 @@ func (u *GetBalance) Do(
 		if !errors.Is(err, repo.ErrNoBalanceFound) {
 			log.Error().
 				Err(err).
-				Str("layer", "usecase").
+				Str("layer", "storage").
 				Str("op", op).
 				Msg("failed to get balance from storage")
 
@@ -47,7 +47,7 @@ func (u *GetBalance) Do(
 		}
 
 		balance = objects.NilBalance
-		balance.SetUpdatedAt(time.Now())
+		balance.SetUpdatedAt(timeNow())
 
 		return balance, err
 	}

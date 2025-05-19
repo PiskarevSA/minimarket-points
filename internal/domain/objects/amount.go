@@ -1,8 +1,6 @@
 package objects
 
 import (
-	"errors"
-
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/shopspring/decimal"
 
@@ -11,12 +9,18 @@ import (
 
 type Amount decimal.Decimal
 
+type AmountError Error
+
+func (e AmountError) Error() string {
+	return e.Message
+}
+
 var NilAmount = Amount{}
 
 var (
-	ErrInvaliAmountValue   = errors.New("invalid amount value")
-	ErrInvalidAmountFormat = errors.New("invalid amount format")
-	ErrInvaliAmountType    = errors.New("invalid amount type")
+	ErrInvaliAmountValue   = &AmountError{"invalid amount value"}
+	ErrInvalidAmountFormat = &AmountError{"invalid amount format"}
+	ErrInvaliAmountType    = &AmountError{"invalid amount type"}
 )
 
 func NewAmount[T string | pgtype.Numeric](value T) (Amount, error) {

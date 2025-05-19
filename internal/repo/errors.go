@@ -11,4 +11,5 @@ func (e *Error) Error() string {
 var (
 	ErrNoBalanceFound      = &Error{"no balance found"}
 	ErrNoTransactionsFound = &Error{"no transactions found"}
+	ErrNotEnoughtBalance   = &Error{"not enought balance"}
 )

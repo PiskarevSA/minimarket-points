@@ -34,7 +34,7 @@ post:
           schema:
             $ref: ../errors/DomainError.yaml
           example:
-            code: D1157
+            code: D1215
             message: insufficient balance"
     "500":
       description: Внутренняя ошибка сервера

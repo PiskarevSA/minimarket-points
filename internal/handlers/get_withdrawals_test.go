@@ -7,13 +7,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/PiskarevSA/minimarket-points/internal/domain/entities"
-	"github.com/PiskarevSA/minimarket-points/internal/gen/oapi"
-	"github.com/PiskarevSA/minimarket-points/internal/usecases"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/PiskarevSA/minimarket-points/internal/domain/entities"
+	"github.com/PiskarevSA/minimarket-points/internal/gen/oapi"
+	"github.com/PiskarevSA/minimarket-points/internal/usecases"
 )
 
 type getWithdrawalsSuite struct {
@@ -24,6 +25,7 @@ type getWithdrawalsSuite struct {
 
 func TestGetWithdrawals(t *testing.T) {
 	log.Logger = log.Logger.Output(io.Discard)
+
 	suite.Run(t, new(getWithdrawalsSuite))
 }
 
@@ -66,7 +68,7 @@ func (s *getWithdrawalsSuite) TestGetWithdrawals_Success() {
 	rr := httptest.NewRecorder()
 	response.VisitGetWithdrawalsResponse(rr)
 
-	s.Require().Equal(rr.Result().StatusCode, http.StatusOK)
+	s.Require().Equal(http.StatusOK, rr.Result().StatusCode)
 }
 
 func (s *getWithdrawalsSuite) TestGetWithdrawals_NoJwt() {
@@ -87,7 +89,7 @@ func (s *getWithdrawalsSuite) TestGetWithdrawals_NoJwt() {
 	rr := httptest.NewRecorder()
 	response.VisitGetWithdrawalsResponse(rr)
 
-	s.Require().Equal(rr.Result().StatusCode, http.StatusInternalServerError)
+	s.Require().Equal(http.StatusInternalServerError, rr.Result().StatusCode)
 }
 
 func (s *getWithdrawalsSuite) TestGetWithdrawals_NoUserIdInClaims() {
@@ -108,7 +110,7 @@ func (s *getWithdrawalsSuite) TestGetWithdrawals_NoUserIdInClaims() {
 	rr := httptest.NewRecorder()
 	response.VisitGetWithdrawalsResponse(rr)
 
-	s.Require().Equal(rr.Result().StatusCode, http.StatusInternalServerError)
+	s.Require().Equal(http.StatusInternalServerError, rr.Result().StatusCode)
 }
 
 func (s *getWithdrawalsSuite) TestGetWithdrawals_ValidationError() {
@@ -131,5 +133,5 @@ func (s *getWithdrawalsSuite) TestGetWithdrawals_ValidationError() {
 	rr := httptest.NewRecorder()
 	response.VisitGetWithdrawalsResponse(rr)
 
-	s.Require().Equal(rr.Result().StatusCode, http.StatusBadRequest)
+	s.Require().Equal(http.StatusBadRequest, rr.Result().StatusCode)
 }

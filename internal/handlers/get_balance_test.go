@@ -7,12 +7,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/PiskarevSA/minimarket-points/internal/domain/objects"
-	"github.com/PiskarevSA/minimarket-points/internal/gen/oapi"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/PiskarevSA/minimarket-points/internal/domain/objects"
+	"github.com/PiskarevSA/minimarket-points/internal/gen/oapi"
 )
 
 type getBalanceSuite struct {
@@ -23,6 +24,7 @@ type getBalanceSuite struct {
 
 func TestGetBalance(t *testing.T) {
 	log.Logger = log.Logger.Output(io.Discard)
+
 	suite.Run(t, new(getBalanceSuite))
 }
 
@@ -63,7 +65,7 @@ func (s *getBalanceSuite) TestGetBalance_Success() {
 	rr := httptest.NewRecorder()
 	response.VisitGetBalanceResponse(rr)
 
-	s.Require().Equal(rr.Result().StatusCode, http.StatusOK)
+	s.Require().Equal(http.StatusOK, rr.Result().StatusCode)
 }
 
 func (s *getBalanceSuite) TestGetBalance_NoJwt() {
@@ -84,7 +86,7 @@ func (s *getBalanceSuite) TestGetBalance_NoJwt() {
 	rr := httptest.NewRecorder()
 	response.VisitGetBalanceResponse(rr)
 
-	s.Require().Equal(rr.Result().StatusCode, http.StatusInternalServerError)
+	s.Require().Equal(http.StatusInternalServerError, rr.Result().StatusCode)
 }
 
 func (s *getBalanceSuite) TestGetBalance_NoUserIdInClaims() {
@@ -105,5 +107,5 @@ func (s *getBalanceSuite) TestGetBalance_NoUserIdInClaims() {
 	rr := httptest.NewRecorder()
 	response.VisitGetBalanceResponse(rr)
 
-	s.Require().Equal(rr.Result().StatusCode, http.StatusInternalServerError)
+	s.Require().Equal(http.StatusInternalServerError, rr.Result().StatusCode)
 }

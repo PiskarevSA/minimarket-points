@@ -8,14 +8,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/PiskarevSA/minimarket-points/internal/domain/entities"
-	"github.com/PiskarevSA/minimarket-points/internal/domain/objects"
-	"github.com/PiskarevSA/minimarket-points/internal/repo"
-	"github.com/PiskarevSA/minimarket-points/pkg/strgen"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/PiskarevSA/minimarket-points/internal/domain/entities"
+	"github.com/PiskarevSA/minimarket-points/internal/domain/objects"
+	"github.com/PiskarevSA/minimarket-points/internal/repo"
+	"github.com/PiskarevSA/minimarket-points/pkg/strgen"
 )
 
 type getWithdrawalsSuite struct {
@@ -29,6 +30,7 @@ type getWithdrawalsSuite struct {
 
 func TestGetWithdrawals(t *testing.T) {
 	log.Logger = log.Logger.Output(io.Discard)
+
 	suite.Run(t, new(getWithdrawalsSuite))
 }
 
@@ -66,7 +68,8 @@ func (s *getWithdrawalsSuite) generateTxs(n int) []entities.Transaction {
 		decimal := decimal.NewFromFloat(rand.Float64() * 100)
 		txs[i].SetAmount(objects.Amount(decimal))
 
-		proccessedAt := time.Now().Add(-time.Duration(rand.IntN(1000)) * time.Hour)
+		proccessedAt := time.Now().
+			Add(-time.Duration(rand.IntN(1000)) * time.Hour)
 		txs[i].SetProcessedAt(proccessedAt)
 	}
 
@@ -106,9 +109,10 @@ func (s *getWithdrawalsSuite) TestGetWithdrawals_InvalidPagination() {
 		&rawLimit,
 	)
 
-	var validationError *ValidationError
-	s.Require().ErrorAs(err, &validationError)
-	s.Require().Equal(validationError.Code, "V1464")
+	var validationErr *ValidationError
+
+	s.Require().ErrorAs(err, &validationErr)
+	s.Require().Equal("V1019", validationErr.Code)
 
 	s.Require().Empty(txs)
 }

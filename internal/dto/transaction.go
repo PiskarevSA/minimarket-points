@@ -5,7 +5,9 @@ import (
 	"github.com/PiskarevSA/minimarket-points/internal/gen/oapi"
 )
 
-func TransactionsToGetWithdrawals(txs []entities.Transaction) oapi.GetWithdrawalsResponse {
+func TransactionsToGetWithdrawals(
+	txs []entities.Transaction,
+) oapi.GetWithdrawalsResponse {
 	result := make(oapi.GetWithdrawalsResponse, len(txs))
 
 	for i, tx := range txs {

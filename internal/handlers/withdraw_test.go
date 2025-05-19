@@ -8,12 +8,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/PiskarevSA/minimarket-points/internal/gen/oapi"
-	"github.com/PiskarevSA/minimarket-points/internal/usecases"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/PiskarevSA/minimarket-points/internal/gen/oapi"
+	"github.com/PiskarevSA/minimarket-points/internal/usecases"
 )
 
 type withdrawSuite struct {
@@ -24,6 +25,7 @@ type withdrawSuite struct {
 
 func TestWithdraw(t *testing.T) {
 	log.Logger = log.Logger.Output(io.Discard)
+
 	suite.Run(t, new(withdrawSuite))
 }
 
@@ -70,7 +72,7 @@ func (s *withdrawSuite) TestWithdraw_Success() {
 	rr := httptest.NewRecorder()
 	response.VisitWithdrawResponse(rr)
 
-	s.Require().Equal(rr.Result().StatusCode, http.StatusOK)
+	s.Require().Equal(http.StatusOK, rr.Result().StatusCode)
 }
 
 func (s *withdrawSuite) TestWithdraw_NoJwt() {
@@ -95,7 +97,7 @@ func (s *withdrawSuite) TestWithdraw_NoJwt() {
 	rr := httptest.NewRecorder()
 	response.VisitWithdrawResponse(rr)
 
-	s.Require().Equal(rr.Result().StatusCode, http.StatusInternalServerError)
+	s.Require().Equal(http.StatusInternalServerError, rr.Result().StatusCode)
 }
 
 func (s *withdrawSuite) TestWithdraw_NoUserIdInClaims() {
@@ -120,7 +122,7 @@ func (s *withdrawSuite) TestWithdraw_NoUserIdInClaims() {
 	rr := httptest.NewRecorder()
 	response.VisitWithdrawResponse(rr)
 
-	s.Require().Equal(rr.Result().StatusCode, http.StatusInternalServerError)
+	s.Require().Equal(http.StatusInternalServerError, rr.Result().StatusCode)
 }
 
 func (s *withdrawSuite) TestWithdraw_ValidationError() {
@@ -147,7 +149,7 @@ func (s *withdrawSuite) TestWithdraw_ValidationError() {
 	rr := httptest.NewRecorder()
 	response.VisitWithdrawResponse(rr)
 
-	s.Require().Equal(rr.Result().StatusCode, http.StatusBadRequest)
+	s.Require().Equal(http.StatusBadRequest, rr.Result().StatusCode)
 }
 
 func (s *withdrawSuite) TestUploadOrder_BusinessError() {
@@ -174,5 +176,5 @@ func (s *withdrawSuite) TestUploadOrder_BusinessError() {
 	rr := httptest.NewRecorder()
 	response.VisitWithdrawResponse(rr)
 
-	s.Require().Equal(rr.Result().StatusCode, http.StatusUnprocessableEntity)
+	s.Require().Equal(http.StatusUnprocessableEntity, rr.Result().StatusCode)
 }

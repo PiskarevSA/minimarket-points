@@ -4,9 +4,9 @@ properties:
     description: Уникальный код ошибки валидацииы
     type: string
     enum:
-      - V1412 # invalid order number
-      - V1431 # invalid amount
-      - V1464 # invalid limit value
+      - V1107 # invalid order number
+      - V1142 # invalid amount
+      - V1019 # invalid limit value
     example: V1512
   field:
     description: Имя поля с данными неверного формата 

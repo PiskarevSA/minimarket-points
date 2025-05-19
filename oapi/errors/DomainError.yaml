@@ -4,8 +4,8 @@ properties:
     description: Уникальный код доменной ошибки
     type: string
     enum:
-      - D1157 # insufficient balance
-    example: D1157
+      - D1215 # insufficient balance
+    example: D1215
   message:
     description: Человеко‑читаемое сообщение об ошибке
     example: insufficient balance

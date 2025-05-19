@@ -1,25 +1,38 @@
 package objects
 
 import (
-	"errors"
-
 	"github.com/PiskarevSA/minimarket-points/pkg/damm/damm"
 )
 
 type OrderNumber string
 
-var NilOrder OrderNumber = ""
+type OrderNumberError Error
 
-var ErrInvalidOrderNumber = errors.New("invalid order number")
+func (e OrderNumberError) Error() string {
+	return e.Message
+}
+
+var NilOrderNumber OrderNumber = ""
+
+var (
+	ErrInvalidOrderNumber    = &OrderNumberError{"invalid order number"}
+	ErrInvalidOrderNumberLen = &OrderNumberError{"invalid order number len"}
+)
+
+const orderNubmerLen = 10
 
 func NewOrderNumber(value string) (OrderNumber, error) {
+	if len(value) != orderNubmerLen {
+		return NilOrderNumber, ErrInvalidOrderNumberLen
+	}
+
 	ok, err := damm.Verify(value)
 	if err != nil {
-		return NilOrder, ErrInvalidOrderNumber
+		return NilOrderNumber, ErrInvalidOrderNumber
 	}
 
 	if !ok {
-		return NilOrder, ErrInvalidOrderNumber
+		return NilOrderNumber, ErrInvalidOrderNumber
 	}
 
 	return OrderNumber(value), nil

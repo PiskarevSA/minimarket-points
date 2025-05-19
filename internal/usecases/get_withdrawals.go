@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/PiskarevSA/minimarket-points/internal/domain/entities"
-	"github.com/PiskarevSA/minimarket-points/internal/repo"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+
+	"github.com/PiskarevSA/minimarket-points/internal/domain/entities"
+	"github.com/PiskarevSA/minimarket-points/internal/repo"
 )
 
 type GetWithdrawalsRepo interface {
@@ -52,7 +53,7 @@ func (u *GetWithdrawals) validatePagination(
 
 	if limit < 1 || limit > u.limitMax {
 		return 0, 0, &ValidationError{
-			Code: "V1464",
+			Code: "V1019",
 			Message: fmt.Sprintf(
 				"limit value must be < 1 and > %v",
 				u.limitMax,
@@ -81,7 +82,7 @@ func (u *GetWithdrawals) Do(
 		if !errors.Is(err, repo.ErrNoTransactionsFound) {
 			log.Error().
 				Err(err).
-				Str("layer", "usecase").
+				Str("layer", "storage").
 				Str("op", op).
 				Msg("failed to get transactions from storage")
 

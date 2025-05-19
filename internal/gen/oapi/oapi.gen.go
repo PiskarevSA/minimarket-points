@@ -23,7 +23,7 @@ const (
 
 // Defines values for DomainErrorCode.
 const (
-	D1157 DomainErrorCode = "D1157"
+	D1215 DomainErrorCode = "D1215"
 	D1164 DomainErrorCode = "D1164"
 )
 

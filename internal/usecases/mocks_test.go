@@ -180,7 +180,7 @@ var _ AdjustBalanceRepo = &MockAdjustBalanceRepo{}
 //
 //		// make and configure a mocked AdjustBalanceRepo
 //		mockedAdjustBalanceRepo := &MockAdjustBalanceRepo{
-//			AdjustBalanceFunc: func(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, updatedAt time.Time)  {
+//			AdjustBalanceFunc: func(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, updatedAt time.Time) error {
 //				panic("mock out the AdjustBalance method")
 //			},
 //		}
@@ -191,7 +191,7 @@ var _ AdjustBalanceRepo = &MockAdjustBalanceRepo{}
 //	}
 type MockAdjustBalanceRepo struct {
 	// AdjustBalanceFunc mocks the AdjustBalance method.
-	AdjustBalanceFunc func(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, updatedAt time.Time)
+	AdjustBalanceFunc func(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, updatedAt time.Time) error
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -215,7 +215,7 @@ type MockAdjustBalanceRepo struct {
 }
 
 // AdjustBalance calls AdjustBalanceFunc.
-func (mock *MockAdjustBalanceRepo) AdjustBalance(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, updatedAt time.Time) {
+func (mock *MockAdjustBalanceRepo) AdjustBalance(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, updatedAt time.Time) error {
 	if mock.AdjustBalanceFunc == nil {
 		panic("MockAdjustBalanceRepo.AdjustBalanceFunc: method is nil but AdjustBalanceRepo.AdjustBalance was just called")
 	}
@@ -237,7 +237,7 @@ func (mock *MockAdjustBalanceRepo) AdjustBalance(ctx context.Context, userId uui
 	mock.lockAdjustBalance.Lock()
 	mock.calls.AdjustBalance = append(mock.calls.AdjustBalance, callInfo)
 	mock.lockAdjustBalance.Unlock()
-	mock.AdjustBalanceFunc(ctx, userId, orderNumber, operation, amount, updatedAt)
+	return mock.AdjustBalanceFunc(ctx, userId, orderNumber, operation, amount, updatedAt)
 }
 
 // AdjustBalanceCalls gets all the calls that were made to AdjustBalance.

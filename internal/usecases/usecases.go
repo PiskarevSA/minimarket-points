@@ -4,8 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/PiskarevSA/minimarket-points/internal/domain/objects"
 	"github.com/google/uuid"
+
+	"github.com/PiskarevSA/minimarket-points/internal/domain/objects"
 )
 
 type AdjustBalanceRepo interface {
@@ -16,5 +17,9 @@ type AdjustBalanceRepo interface {
 		operation objects.Operation,
 		amount objects.Amount,
 		updatedAt time.Time,
-	)
+	) error
+}
+
+var timeNow = func() time.Time {
+	return time.Now()
 }
