@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
 
@@ -22,8 +23,12 @@ import (
 type withdrawSuite struct {
 	suite.Suite
 	usecase     *Withdraw
-	mockStorage *MockAdjustBalanceRepo
+	mockStorage *MockWithdrawRepo
+	transactor  *MockTransactor
 	strgen      *strgen.Generator
+
+	errWhenCreatingTransaction error
+	errWhenAdjustingBalance    error
 }
 
 func TestWithdraw(t *testing.T) {
@@ -33,18 +38,36 @@ func TestWithdraw(t *testing.T) {
 }
 
 func (s *withdrawSuite) SetupTest() {
-	s.mockStorage = &MockAdjustBalanceRepo{}
-	s.usecase = NewWithdraw(s.mockStorage)
+	s.mockStorage = &MockWithdrawRepo{}
+	s.transactor = &MockTransactor{}
+	s.usecase = NewWithdraw(s.mockStorage, s.transactor)
 
 	onlyNumbers := strgen.WithAlphabet(strgen.AlphabetOnlyNumbers)
 	s.strgen = strgen.New(onlyNumbers)
-}
 
-func (s *withdrawSuite) TestWithdraw_Success() {
-	now := time.Now()
-	timeNow = func() time.Time { return now }
+	s.errWhenCreatingTransaction = nil
+	s.errWhenAdjustingBalance = nil
 
-	s.mockStorage.AdjustBalanceFunc = func(
+	s.transactor.TransactFunc = func(
+		ctx context.Context,
+		opts pgx.TxOptions,
+		fn func(ctx context.Context) error,
+	) error {
+		return fn(ctx)
+	}
+
+	s.mockStorage.CreateTransactionInTxFunc = func(
+		ctx context.Context,
+		userId uuid.UUID,
+		orderNumber objects.OrderNumber,
+		operation objects.Operation,
+		amount objects.Amount,
+		timestamp time.Time,
+	) error {
+		return s.errWhenCreatingTransaction
+	}
+
+	s.mockStorage.AdjustBalanceInTxFunc = func(
 		ctx context.Context,
 		userId uuid.UUID,
 		orderNumber objects.OrderNumber,
@@ -52,8 +75,13 @@ func (s *withdrawSuite) TestWithdraw_Success() {
 		amount objects.Amount,
 		updatedAt time.Time,
 	) error {
-		return nil
+		return s.errWhenAdjustingBalance
 	}
+}
+
+func (s *withdrawSuite) TestWithdraw_Success() {
+	now := time.Now()
+	timeNow = func() time.Time { return now }
 
 	orderNumber, err := damm.Append(s.strgen.Generate(9))
 	s.Require().NoError(err)
@@ -112,16 +140,7 @@ func (s *withdrawSuite) TestWithdraw_InvalidAmount() {
 }
 
 func (s *withdrawSuite) TestWithdraw_InsufficientBalance() {
-	s.mockStorage.AdjustBalanceFunc = func(
-		ctx context.Context,
-		userId uuid.UUID,
-		orderNumber objects.OrderNumber,
-		operation objects.Operation,
-		amount objects.Amount,
-		updatedAt time.Time,
-	) error {
-		return repo.ErrNotEnoughtBalance
-	}
+	s.errWhenAdjustingBalance = repo.ErrNotEnoughtBalance
 
 	orderNumber, err := damm.Append(s.strgen.Generate(9))
 	s.Require().NoError(err)
@@ -145,17 +164,7 @@ func (s *withdrawSuite) TestWithdraw_InsufficientBalance() {
 
 func (s *withdrawSuite) TestGetWithdrawals_UnexpectedError() {
 	errUnexpectedError := errors.New("unexpected error")
-
-	s.mockStorage.AdjustBalanceFunc = func(
-		ctx context.Context,
-		userId uuid.UUID,
-		orderNumber objects.OrderNumber,
-		operation objects.Operation,
-		amount objects.Amount,
-		updatedAt time.Time,
-	) error {
-		return errUnexpectedError
-	}
+	s.errWhenAdjustingBalance = errUnexpectedError
 
 	orderNumber, err := damm.Append(s.strgen.Generate(9))
 	s.Require().NoError(err)

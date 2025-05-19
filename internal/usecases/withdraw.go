@@ -6,20 +6,64 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/rs/zerolog/log"
 
 	"github.com/PiskarevSA/minimarket-points/internal/domain/objects"
 	"github.com/PiskarevSA/minimarket-points/internal/repo"
 )
 
-type Withdraw struct {
-	storage AdjustBalanceRepo
+type WithdrawRepo interface {
+	AdjustBalanceInRepo
+	CreateTransactionRepo
 }
 
-func NewWithdraw(storage AdjustBalanceRepo) *Withdraw {
+type Withdraw struct {
+	storage    WithdrawRepo
+	transactor Transactor
+}
+
+func NewWithdraw(
+	storage WithdrawRepo,
+	transactor Transactor,
+) *Withdraw {
 	return &Withdraw{
-		storage: storage,
+		storage:    storage,
+		transactor: transactor,
 	}
+}
+
+func (u *Withdraw) Do(
+	ctx context.Context,
+	userId uuid.UUID,
+	rawOrderNumber string,
+	rawAmount string,
+) (proccessedAt time.Time, err error) {
+	const op = "withdraw"
+
+	orderNumber, amount, err := u.parseAndValidateInputs(
+		rawOrderNumber,
+		rawAmount,
+	)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	proccessedAt = timeNow()
+
+	err = u.transact(
+		ctx,
+		op,
+		userId,
+		orderNumber,
+		amount,
+		proccessedAt,
+	)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	return proccessedAt, nil
 }
 
 func (u *Withdraw) parseAndValidateInputs(
@@ -53,48 +97,62 @@ func (u *Withdraw) parseAndValidateInputs(
 	return orderNumber, amount, nil
 }
 
-func (u *Withdraw) Do(
+func (u *Withdraw) transact(
 	ctx context.Context,
+	op string,
 	userId uuid.UUID,
-	rawOrderNumber string,
-	rawAmount string,
-) (proccessedAt time.Time, err error) {
-	const op = "withdraw"
+	orderNumber objects.OrderNumber,
+	amount objects.Amount,
+	proccessedAt time.Time,
+) error {
+	pgxTxOpts := pgx.TxOptions{IsoLevel: pgx.ReadCommitted}
 
-	orderNumber, amount, err := u.parseAndValidateInputs(
-		rawOrderNumber,
-		rawAmount,
-	)
-	if err != nil {
-		return time.Time{}, err
-	}
+	transactFn := func(ctx context.Context) error {
+		err := u.storage.AdjustBalanceInTx(
+			ctx,
+			userId,
+			orderNumber,
+			objects.OperationWithdraw,
+			amount,
+			proccessedAt,
+		)
+		if err != nil {
+			if !errors.Is(err, repo.ErrNotEnoughtBalance) {
+				log.Error().
+					Err(err).
+					Str("layer", "storage").
+					Str("op", op).
+					Msg("failed to write balance change to storage")
 
-	proccessedAt = timeNow()
+				return err
+			}
 
-	err = u.storage.AdjustBalance(
-		ctx,
-		userId,
-		orderNumber,
-		objects.OperationWithdraw,
-		amount,
-		proccessedAt,
-	)
-	if err != nil {
-		if !errors.Is(err, repo.ErrNotEnoughtBalance) {
+			return &BusinessError{
+				Code:    "D1215",
+				Message: "insufficient balance",
+			}
+		}
+
+		err = u.storage.CreateTransactionInTx(
+			ctx,
+			userId,
+			orderNumber,
+			objects.OperationWithdraw,
+			amount,
+			proccessedAt,
+		)
+		if err != nil {
 			log.Error().
 				Err(err).
 				Str("layer", "storage").
 				Str("op", op).
-				Msg("failed to write balance change to storage")
+				Msg("failed to write transaction to storage")
 
-			return time.Time{}, err
+			return err
 		}
 
-		return time.Time{}, &BusinessError{
-			Code:    "D1215",
-			Message: "insufficient balance",
-		}
+		return nil
 	}
 
-	return proccessedAt, nil
+	return u.transactor.Transact(ctx, pgxTxOpts, transactFn)
 }

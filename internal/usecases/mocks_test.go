@@ -12,6 +12,7 @@ import (
 	"github.com/PiskarevSA/minimarket-points/internal/domain/entities"
 	"github.com/PiskarevSA/minimarket-points/internal/domain/objects"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 // Ensure that MockGetBalanceRepo does implement GetBalanceRepo.
@@ -170,33 +171,111 @@ func (mock *MockGetWithdrawalsRepo) GetWithdrawalsCalls() []struct {
 	return calls
 }
 
-// Ensure that MockAdjustBalanceRepo does implement AdjustBalanceRepo.
+// Ensure that MockTransactor does implement Transactor.
 // If this is not the case, regenerate this file with mockery.
-var _ AdjustBalanceRepo = &MockAdjustBalanceRepo{}
+var _ Transactor = &MockTransactor{}
 
-// MockAdjustBalanceRepo is a mock implementation of AdjustBalanceRepo.
+// MockTransactor is a mock implementation of Transactor.
 //
-//	func TestSomethingThatUsesAdjustBalanceRepo(t *testing.T) {
+//	func TestSomethingThatUsesTransactor(t *testing.T) {
 //
-//		// make and configure a mocked AdjustBalanceRepo
-//		mockedAdjustBalanceRepo := &MockAdjustBalanceRepo{
-//			AdjustBalanceFunc: func(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, updatedAt time.Time) error {
-//				panic("mock out the AdjustBalance method")
+//		// make and configure a mocked Transactor
+//		mockedTransactor := &MockTransactor{
+//			TransactFunc: func(ctx context.Context, opts pgx.TxOptions, fn func(ctx context.Context) error) error {
+//				panic("mock out the Transact method")
 //			},
 //		}
 //
-//		// use mockedAdjustBalanceRepo in code that requires AdjustBalanceRepo
+//		// use mockedTransactor in code that requires Transactor
 //		// and then make assertions.
 //
 //	}
-type MockAdjustBalanceRepo struct {
-	// AdjustBalanceFunc mocks the AdjustBalance method.
-	AdjustBalanceFunc func(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, updatedAt time.Time) error
+type MockTransactor struct {
+	// TransactFunc mocks the Transact method.
+	TransactFunc func(ctx context.Context, opts pgx.TxOptions, fn func(ctx context.Context) error) error
 
 	// calls tracks calls to the methods.
 	calls struct {
-		// AdjustBalance holds details about calls to the AdjustBalance method.
-		AdjustBalance []struct {
+		// Transact holds details about calls to the Transact method.
+		Transact []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Opts is the opts argument value.
+			Opts pgx.TxOptions
+			// Fn is the fn argument value.
+			Fn func(ctx context.Context) error
+		}
+	}
+	lockTransact sync.RWMutex
+}
+
+// Transact calls TransactFunc.
+func (mock *MockTransactor) Transact(ctx context.Context, opts pgx.TxOptions, fn func(ctx context.Context) error) error {
+	if mock.TransactFunc == nil {
+		panic("MockTransactor.TransactFunc: method is nil but Transactor.Transact was just called")
+	}
+	callInfo := struct {
+		Ctx  context.Context
+		Opts pgx.TxOptions
+		Fn   func(ctx context.Context) error
+	}{
+		Ctx:  ctx,
+		Opts: opts,
+		Fn:   fn,
+	}
+	mock.lockTransact.Lock()
+	mock.calls.Transact = append(mock.calls.Transact, callInfo)
+	mock.lockTransact.Unlock()
+	return mock.TransactFunc(ctx, opts, fn)
+}
+
+// TransactCalls gets all the calls that were made to Transact.
+// Check the length with:
+//
+//	len(mockedTransactor.TransactCalls())
+func (mock *MockTransactor) TransactCalls() []struct {
+	Ctx  context.Context
+	Opts pgx.TxOptions
+	Fn   func(ctx context.Context) error
+} {
+	var calls []struct {
+		Ctx  context.Context
+		Opts pgx.TxOptions
+		Fn   func(ctx context.Context) error
+	}
+	mock.lockTransact.RLock()
+	calls = mock.calls.Transact
+	mock.lockTransact.RUnlock()
+	return calls
+}
+
+// Ensure that MockAdjustBalanceInRepo does implement AdjustBalanceInRepo.
+// If this is not the case, regenerate this file with mockery.
+var _ AdjustBalanceInRepo = &MockAdjustBalanceInRepo{}
+
+// MockAdjustBalanceInRepo is a mock implementation of AdjustBalanceInRepo.
+//
+//	func TestSomethingThatUsesAdjustBalanceInRepo(t *testing.T) {
+//
+//		// make and configure a mocked AdjustBalanceInRepo
+//		mockedAdjustBalanceInRepo := &MockAdjustBalanceInRepo{
+//			AdjustBalanceInTxFunc: func(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, updatedAt time.Time) error {
+//				panic("mock out the AdjustBalanceInTx method")
+//			},
+//		}
+//
+//		// use mockedAdjustBalanceInRepo in code that requires AdjustBalanceInRepo
+//		// and then make assertions.
+//
+//	}
+type MockAdjustBalanceInRepo struct {
+	// AdjustBalanceInTxFunc mocks the AdjustBalanceInTx method.
+	AdjustBalanceInTxFunc func(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, updatedAt time.Time) error
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// AdjustBalanceInTx holds details about calls to the AdjustBalanceInTx method.
+		AdjustBalanceInTx []struct {
 			// Ctx is the ctx argument value.
 			Ctx context.Context
 			// UserId is the userId argument value.
@@ -211,13 +290,13 @@ type MockAdjustBalanceRepo struct {
 			UpdatedAt time.Time
 		}
 	}
-	lockAdjustBalance sync.RWMutex
+	lockAdjustBalanceInTx sync.RWMutex
 }
 
-// AdjustBalance calls AdjustBalanceFunc.
-func (mock *MockAdjustBalanceRepo) AdjustBalance(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, updatedAt time.Time) error {
-	if mock.AdjustBalanceFunc == nil {
-		panic("MockAdjustBalanceRepo.AdjustBalanceFunc: method is nil but AdjustBalanceRepo.AdjustBalance was just called")
+// AdjustBalanceInTx calls AdjustBalanceInTxFunc.
+func (mock *MockAdjustBalanceInRepo) AdjustBalanceInTx(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, updatedAt time.Time) error {
+	if mock.AdjustBalanceInTxFunc == nil {
+		panic("MockAdjustBalanceInRepo.AdjustBalanceInTxFunc: method is nil but AdjustBalanceInRepo.AdjustBalanceInTx was just called")
 	}
 	callInfo := struct {
 		Ctx         context.Context
@@ -234,17 +313,17 @@ func (mock *MockAdjustBalanceRepo) AdjustBalance(ctx context.Context, userId uui
 		Amount:      amount,
 		UpdatedAt:   updatedAt,
 	}
-	mock.lockAdjustBalance.Lock()
-	mock.calls.AdjustBalance = append(mock.calls.AdjustBalance, callInfo)
-	mock.lockAdjustBalance.Unlock()
-	return mock.AdjustBalanceFunc(ctx, userId, orderNumber, operation, amount, updatedAt)
+	mock.lockAdjustBalanceInTx.Lock()
+	mock.calls.AdjustBalanceInTx = append(mock.calls.AdjustBalanceInTx, callInfo)
+	mock.lockAdjustBalanceInTx.Unlock()
+	return mock.AdjustBalanceInTxFunc(ctx, userId, orderNumber, operation, amount, updatedAt)
 }
 
-// AdjustBalanceCalls gets all the calls that were made to AdjustBalance.
+// AdjustBalanceInTxCalls gets all the calls that were made to AdjustBalanceInTx.
 // Check the length with:
 //
-//	len(mockedAdjustBalanceRepo.AdjustBalanceCalls())
-func (mock *MockAdjustBalanceRepo) AdjustBalanceCalls() []struct {
+//	len(mockedAdjustBalanceInRepo.AdjustBalanceInTxCalls())
+func (mock *MockAdjustBalanceInRepo) AdjustBalanceInTxCalls() []struct {
 	Ctx         context.Context
 	UserId      uuid.UUID
 	OrderNumber objects.OrderNumber
@@ -260,8 +339,274 @@ func (mock *MockAdjustBalanceRepo) AdjustBalanceCalls() []struct {
 		Amount      objects.Amount
 		UpdatedAt   time.Time
 	}
-	mock.lockAdjustBalance.RLock()
-	calls = mock.calls.AdjustBalance
-	mock.lockAdjustBalance.RUnlock()
+	mock.lockAdjustBalanceInTx.RLock()
+	calls = mock.calls.AdjustBalanceInTx
+	mock.lockAdjustBalanceInTx.RUnlock()
+	return calls
+}
+
+// Ensure that MockCreateTransactionRepo does implement CreateTransactionRepo.
+// If this is not the case, regenerate this file with mockery.
+var _ CreateTransactionRepo = &MockCreateTransactionRepo{}
+
+// MockCreateTransactionRepo is a mock implementation of CreateTransactionRepo.
+//
+//	func TestSomethingThatUsesCreateTransactionRepo(t *testing.T) {
+//
+//		// make and configure a mocked CreateTransactionRepo
+//		mockedCreateTransactionRepo := &MockCreateTransactionRepo{
+//			CreateTransactionInTxFunc: func(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, timestamp time.Time) error {
+//				panic("mock out the CreateTransactionInTx method")
+//			},
+//		}
+//
+//		// use mockedCreateTransactionRepo in code that requires CreateTransactionRepo
+//		// and then make assertions.
+//
+//	}
+type MockCreateTransactionRepo struct {
+	// CreateTransactionInTxFunc mocks the CreateTransactionInTx method.
+	CreateTransactionInTxFunc func(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, timestamp time.Time) error
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// CreateTransactionInTx holds details about calls to the CreateTransactionInTx method.
+		CreateTransactionInTx []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// UserId is the userId argument value.
+			UserId uuid.UUID
+			// OrderNumber is the orderNumber argument value.
+			OrderNumber objects.OrderNumber
+			// Operation is the operation argument value.
+			Operation objects.Operation
+			// Amount is the amount argument value.
+			Amount objects.Amount
+			// Timestamp is the timestamp argument value.
+			Timestamp time.Time
+		}
+	}
+	lockCreateTransactionInTx sync.RWMutex
+}
+
+// CreateTransactionInTx calls CreateTransactionInTxFunc.
+func (mock *MockCreateTransactionRepo) CreateTransactionInTx(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, timestamp time.Time) error {
+	if mock.CreateTransactionInTxFunc == nil {
+		panic("MockCreateTransactionRepo.CreateTransactionInTxFunc: method is nil but CreateTransactionRepo.CreateTransactionInTx was just called")
+	}
+	callInfo := struct {
+		Ctx         context.Context
+		UserId      uuid.UUID
+		OrderNumber objects.OrderNumber
+		Operation   objects.Operation
+		Amount      objects.Amount
+		Timestamp   time.Time
+	}{
+		Ctx:         ctx,
+		UserId:      userId,
+		OrderNumber: orderNumber,
+		Operation:   operation,
+		Amount:      amount,
+		Timestamp:   timestamp,
+	}
+	mock.lockCreateTransactionInTx.Lock()
+	mock.calls.CreateTransactionInTx = append(mock.calls.CreateTransactionInTx, callInfo)
+	mock.lockCreateTransactionInTx.Unlock()
+	return mock.CreateTransactionInTxFunc(ctx, userId, orderNumber, operation, amount, timestamp)
+}
+
+// CreateTransactionInTxCalls gets all the calls that were made to CreateTransactionInTx.
+// Check the length with:
+//
+//	len(mockedCreateTransactionRepo.CreateTransactionInTxCalls())
+func (mock *MockCreateTransactionRepo) CreateTransactionInTxCalls() []struct {
+	Ctx         context.Context
+	UserId      uuid.UUID
+	OrderNumber objects.OrderNumber
+	Operation   objects.Operation
+	Amount      objects.Amount
+	Timestamp   time.Time
+} {
+	var calls []struct {
+		Ctx         context.Context
+		UserId      uuid.UUID
+		OrderNumber objects.OrderNumber
+		Operation   objects.Operation
+		Amount      objects.Amount
+		Timestamp   time.Time
+	}
+	mock.lockCreateTransactionInTx.RLock()
+	calls = mock.calls.CreateTransactionInTx
+	mock.lockCreateTransactionInTx.RUnlock()
+	return calls
+}
+
+// Ensure that MockWithdrawRepo does implement WithdrawRepo.
+// If this is not the case, regenerate this file with mockery.
+var _ WithdrawRepo = &MockWithdrawRepo{}
+
+// MockWithdrawRepo is a mock implementation of WithdrawRepo.
+//
+//	func TestSomethingThatUsesWithdrawRepo(t *testing.T) {
+//
+//		// make and configure a mocked WithdrawRepo
+//		mockedWithdrawRepo := &MockWithdrawRepo{
+//			AdjustBalanceInTxFunc: func(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, updatedAt time.Time) error {
+//				panic("mock out the AdjustBalanceInTx method")
+//			},
+//			CreateTransactionInTxFunc: func(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, timestamp time.Time) error {
+//				panic("mock out the CreateTransactionInTx method")
+//			},
+//		}
+//
+//		// use mockedWithdrawRepo in code that requires WithdrawRepo
+//		// and then make assertions.
+//
+//	}
+type MockWithdrawRepo struct {
+	// AdjustBalanceInTxFunc mocks the AdjustBalanceInTx method.
+	AdjustBalanceInTxFunc func(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, updatedAt time.Time) error
+
+	// CreateTransactionInTxFunc mocks the CreateTransactionInTx method.
+	CreateTransactionInTxFunc func(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, timestamp time.Time) error
+
+	// calls tracks calls to the methods.
+	calls struct {
+		// AdjustBalanceInTx holds details about calls to the AdjustBalanceInTx method.
+		AdjustBalanceInTx []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// UserId is the userId argument value.
+			UserId uuid.UUID
+			// OrderNumber is the orderNumber argument value.
+			OrderNumber objects.OrderNumber
+			// Operation is the operation argument value.
+			Operation objects.Operation
+			// Amount is the amount argument value.
+			Amount objects.Amount
+			// UpdatedAt is the updatedAt argument value.
+			UpdatedAt time.Time
+		}
+		// CreateTransactionInTx holds details about calls to the CreateTransactionInTx method.
+		CreateTransactionInTx []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// UserId is the userId argument value.
+			UserId uuid.UUID
+			// OrderNumber is the orderNumber argument value.
+			OrderNumber objects.OrderNumber
+			// Operation is the operation argument value.
+			Operation objects.Operation
+			// Amount is the amount argument value.
+			Amount objects.Amount
+			// Timestamp is the timestamp argument value.
+			Timestamp time.Time
+		}
+	}
+	lockAdjustBalanceInTx     sync.RWMutex
+	lockCreateTransactionInTx sync.RWMutex
+}
+
+// AdjustBalanceInTx calls AdjustBalanceInTxFunc.
+func (mock *MockWithdrawRepo) AdjustBalanceInTx(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, updatedAt time.Time) error {
+	if mock.AdjustBalanceInTxFunc == nil {
+		panic("MockWithdrawRepo.AdjustBalanceInTxFunc: method is nil but WithdrawRepo.AdjustBalanceInTx was just called")
+	}
+	callInfo := struct {
+		Ctx         context.Context
+		UserId      uuid.UUID
+		OrderNumber objects.OrderNumber
+		Operation   objects.Operation
+		Amount      objects.Amount
+		UpdatedAt   time.Time
+	}{
+		Ctx:         ctx,
+		UserId:      userId,
+		OrderNumber: orderNumber,
+		Operation:   operation,
+		Amount:      amount,
+		UpdatedAt:   updatedAt,
+	}
+	mock.lockAdjustBalanceInTx.Lock()
+	mock.calls.AdjustBalanceInTx = append(mock.calls.AdjustBalanceInTx, callInfo)
+	mock.lockAdjustBalanceInTx.Unlock()
+	return mock.AdjustBalanceInTxFunc(ctx, userId, orderNumber, operation, amount, updatedAt)
+}
+
+// AdjustBalanceInTxCalls gets all the calls that were made to AdjustBalanceInTx.
+// Check the length with:
+//
+//	len(mockedWithdrawRepo.AdjustBalanceInTxCalls())
+func (mock *MockWithdrawRepo) AdjustBalanceInTxCalls() []struct {
+	Ctx         context.Context
+	UserId      uuid.UUID
+	OrderNumber objects.OrderNumber
+	Operation   objects.Operation
+	Amount      objects.Amount
+	UpdatedAt   time.Time
+} {
+	var calls []struct {
+		Ctx         context.Context
+		UserId      uuid.UUID
+		OrderNumber objects.OrderNumber
+		Operation   objects.Operation
+		Amount      objects.Amount
+		UpdatedAt   time.Time
+	}
+	mock.lockAdjustBalanceInTx.RLock()
+	calls = mock.calls.AdjustBalanceInTx
+	mock.lockAdjustBalanceInTx.RUnlock()
+	return calls
+}
+
+// CreateTransactionInTx calls CreateTransactionInTxFunc.
+func (mock *MockWithdrawRepo) CreateTransactionInTx(ctx context.Context, userId uuid.UUID, orderNumber objects.OrderNumber, operation objects.Operation, amount objects.Amount, timestamp time.Time) error {
+	if mock.CreateTransactionInTxFunc == nil {
+		panic("MockWithdrawRepo.CreateTransactionInTxFunc: method is nil but WithdrawRepo.CreateTransactionInTx was just called")
+	}
+	callInfo := struct {
+		Ctx         context.Context
+		UserId      uuid.UUID
+		OrderNumber objects.OrderNumber
+		Operation   objects.Operation
+		Amount      objects.Amount
+		Timestamp   time.Time
+	}{
+		Ctx:         ctx,
+		UserId:      userId,
+		OrderNumber: orderNumber,
+		Operation:   operation,
+		Amount:      amount,
+		Timestamp:   timestamp,
+	}
+	mock.lockCreateTransactionInTx.Lock()
+	mock.calls.CreateTransactionInTx = append(mock.calls.CreateTransactionInTx, callInfo)
+	mock.lockCreateTransactionInTx.Unlock()
+	return mock.CreateTransactionInTxFunc(ctx, userId, orderNumber, operation, amount, timestamp)
+}
+
+// CreateTransactionInTxCalls gets all the calls that were made to CreateTransactionInTx.
+// Check the length with:
+//
+//	len(mockedWithdrawRepo.CreateTransactionInTxCalls())
+func (mock *MockWithdrawRepo) CreateTransactionInTxCalls() []struct {
+	Ctx         context.Context
+	UserId      uuid.UUID
+	OrderNumber objects.OrderNumber
+	Operation   objects.Operation
+	Amount      objects.Amount
+	Timestamp   time.Time
+} {
+	var calls []struct {
+		Ctx         context.Context
+		UserId      uuid.UUID
+		OrderNumber objects.OrderNumber
+		Operation   objects.Operation
+		Amount      objects.Amount
+		Timestamp   time.Time
+	}
+	mock.lockCreateTransactionInTx.RLock()
+	calls = mock.calls.CreateTransactionInTx
+	mock.lockCreateTransactionInTx.RUnlock()
 	return calls
 }
