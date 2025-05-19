@@ -14,7 +14,7 @@ import (
 )
 
 type WithdrawRepo interface {
-	AdjustBalanceInRepo
+	CreateOrUpdateBalanceInRepo
 	CreateTransactionRepo
 }
 
@@ -108,10 +108,9 @@ func (u *Withdraw) transact(
 	pgxTxOpts := pgx.TxOptions{IsoLevel: pgx.ReadCommitted}
 
 	transactFn := func(ctx context.Context) error {
-		err := u.storage.AdjustBalanceInTx(
+		err := u.storage.CreateOrUpdateBalanceInTx(
 			ctx,
 			userId,
-			orderNumber,
 			objects.OperationWithdraw,
 			amount,
 			proccessedAt,

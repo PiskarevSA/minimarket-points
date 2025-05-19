@@ -33,7 +33,7 @@ INSERT INTO transactions (
     order_number,
     operation,
     amount,
-    timestamp
+    proccessedAt
 )
 SELECT
     next_tx_id.id,
@@ -46,11 +46,11 @@ FROM next_tx_id
 `
 
 type CreateTransactionParams struct {
-	UserId      uuid.UUID
-	OrderNumber pgtype.Text
-	Operation   string
-	Amount      pgtype.Numeric
-	Timestamp   time.Time
+	UserId       uuid.UUID
+	OrderNumber  string
+	Operation    string
+	Amount       pgtype.Numeric
+	Proccessedat time.Time
 }
 
 func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) error {
@@ -59,7 +59,7 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 		arg.OrderNumber,
 		arg.Operation,
 		arg.Amount,
-		arg.Timestamp,
+		arg.Proccessedat,
 	)
 	return err
 }

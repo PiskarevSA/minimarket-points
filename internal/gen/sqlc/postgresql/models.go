@@ -20,12 +20,12 @@ type Balance struct {
 }
 
 type Transaction struct {
-	Id          int32
-	UserId      uuid.UUID
-	OrderNumber pgtype.Text
-	Operation   string
-	Amount      pgtype.Numeric
-	Timestamp   time.Time
+	Id           int32
+	UserId       uuid.UUID
+	OrderNumber  string
+	Operation    string
+	Amount       pgtype.Numeric
+	Proccessedat time.Time
 }
 
 type TransactionCounter struct {

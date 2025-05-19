@@ -18,7 +18,7 @@ INSERT INTO transactions (
     order_number,
     operation,
     amount,
-    timestamp
+    proccessedAt
 )
 SELECT
     next_tx_id.id,
@@ -26,5 +26,5 @@ SELECT
     @order_number,
     @operation,
     @amount,
-    @timestamp
+    @proccessedAt
 FROM next_tx_id;

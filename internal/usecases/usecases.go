@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/PiskarevSA/minimarket-points/internal/domain/entities"
 	"github.com/PiskarevSA/minimarket-points/internal/domain/objects"
 	"github.com/PiskarevSA/minimarket-points/pkg/pgx/transactor"
 )
@@ -15,11 +16,10 @@ type (
 		transactor.Transactor
 	}
 
-	AdjustBalanceInRepo interface {
-		AdjustBalanceInTx(
+	CreateOrUpdateBalanceInRepo interface {
+		CreateOrUpdateBalanceInTx(
 			ctx context.Context,
 			userId uuid.UUID,
-			orderNumber objects.OrderNumber,
 			operation objects.Operation,
 			amount objects.Amount,
 			updatedAt time.Time,
@@ -33,8 +33,18 @@ type (
 			orderNumber objects.OrderNumber,
 			operation objects.Operation,
 			amount objects.Amount,
-			timestamp time.Time,
+			proccessedAt time.Time,
 		) error
+	}
+
+	GetTransactionsRepo interface {
+		GetTransactions(
+			ctx context.Context,
+			userId uuid.UUID,
+			operation objects.Operation,
+			offset int32,
+			limit int32,
+		) ([]entities.Transaction, error)
 	}
 )
 

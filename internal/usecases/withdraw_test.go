@@ -27,8 +27,8 @@ type withdrawSuite struct {
 	transactor  *MockTransactor
 	strgen      *strgen.Generator
 
-	errWhenCreatingTransaction error
-	errWhenAdjustingBalance    error
+	errWhenCreatingTransaction       error
+	errWhenCreatingOrUpdatingBalance error
 }
 
 func TestWithdraw(t *testing.T) {
@@ -46,7 +46,7 @@ func (s *withdrawSuite) SetupTest() {
 	s.strgen = strgen.New(onlyNumbers)
 
 	s.errWhenCreatingTransaction = nil
-	s.errWhenAdjustingBalance = nil
+	s.errWhenCreatingOrUpdatingBalance = nil
 
 	s.transactor.TransactFunc = func(
 		ctx context.Context,
@@ -67,15 +67,14 @@ func (s *withdrawSuite) SetupTest() {
 		return s.errWhenCreatingTransaction
 	}
 
-	s.mockStorage.AdjustBalanceInTxFunc = func(
+	s.mockStorage.CreateOrUpdateBalanceInTxFunc = func(
 		ctx context.Context,
 		userId uuid.UUID,
-		orderNumber objects.OrderNumber,
 		operation objects.Operation,
 		amount objects.Amount,
 		updatedAt time.Time,
 	) error {
-		return s.errWhenAdjustingBalance
+		return s.errWhenCreatingOrUpdatingBalance
 	}
 }
 
@@ -140,7 +139,7 @@ func (s *withdrawSuite) TestWithdraw_InvalidAmount() {
 }
 
 func (s *withdrawSuite) TestWithdraw_InsufficientBalance() {
-	s.errWhenAdjustingBalance = repo.ErrNotEnoughtBalance
+	s.errWhenCreatingOrUpdatingBalance = repo.ErrNotEnoughtBalance
 
 	orderNumber, err := damm.Append(s.strgen.Generate(9))
 	s.Require().NoError(err)
@@ -164,7 +163,7 @@ func (s *withdrawSuite) TestWithdraw_InsufficientBalance() {
 
 func (s *withdrawSuite) TestGetWithdrawals_UnexpectedError() {
 	errUnexpectedError := errors.New("unexpected error")
-	s.errWhenAdjustingBalance = errUnexpectedError
+	s.errWhenCreatingOrUpdatingBalance = errUnexpectedError
 
 	orderNumber, err := damm.Append(s.strgen.Generate(9))
 	s.Require().NoError(err)

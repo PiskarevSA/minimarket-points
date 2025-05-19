@@ -49,7 +49,7 @@ func (h *Handlers) GetWithdrawals(
 		return withdrawals500JSONResponse, nil
 	}
 
-	getWithdrawals := dto.TransactionsToGetWithdrawals(txs)
+	getWithdrawals := dto.TransactionsToGetWithdrawalsResponse(txs)
 
 	return oapi.GetWithdrawals200JSONResponse(getWithdrawals), nil
 }

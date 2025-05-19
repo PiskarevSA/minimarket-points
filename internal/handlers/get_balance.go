@@ -33,7 +33,7 @@ func (h *Handlers) GetBalance(
 		return getBalance500JSONResponse, nil
 	}
 
-	getBalance := dto.BalanceToGetBalance(balance)
+	getBalance := dto.BalanceToGetBalanceResponse(balance)
 
 	return oapi.GetBalance200JSONResponse(getBalance), nil
 }

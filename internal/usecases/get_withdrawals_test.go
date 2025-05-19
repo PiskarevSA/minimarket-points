@@ -22,7 +22,7 @@ import (
 type getWithdrawalsSuite struct {
 	suite.Suite
 	usecase     *GetWithdrawals
-	mockStorage *MockGetWithdrawalsRepo
+	mockStorage *MockGetTransactionsRepo
 
 	rawOffset int32
 	rawLimit  int32
@@ -35,7 +35,7 @@ func TestGetWithdrawals(t *testing.T) {
 }
 
 func (s *getWithdrawalsSuite) SetupTest() {
-	s.mockStorage = &MockGetWithdrawalsRepo{}
+	s.mockStorage = &MockGetTransactionsRepo{}
 	limitMax := int32(35)
 	s.usecase = NewGetWithdrawals(limitMax, s.mockStorage)
 
@@ -78,9 +78,10 @@ func (s *getWithdrawalsSuite) generateTxs(n int) []entities.Transaction {
 
 func (s *getWithdrawalsSuite) TestGetWithdrawals_Success() {
 	expectedTxs := s.generateTxs(rand.IntN(10))
-	s.mockStorage.GetWithdrawalsFunc = func(
+	s.mockStorage.GetTransactionsFunc = func(
 		ctx context.Context,
 		userId uuid.UUID,
+		operation objects.Operation,
 		offset,
 		limit int32,
 	) ([]entities.Transaction, error) {
@@ -118,9 +119,10 @@ func (s *getWithdrawalsSuite) TestGetWithdrawals_InvalidPagination() {
 }
 
 func (s *getWithdrawalsSuite) TestGetWithdrawals_NoTransactions() {
-	s.mockStorage.GetWithdrawalsFunc = func(
+	s.mockStorage.GetTransactionsFunc = func(
 		ctx context.Context,
 		userId uuid.UUID,
+		operation objects.Operation,
 		offset,
 		limit int32,
 	) ([]entities.Transaction, error) {
@@ -141,9 +143,10 @@ func (s *getWithdrawalsSuite) TestGetWithdrawals_NoTransactions() {
 func (s *getWithdrawalsSuite) TestGetWithdrawals_UnexpectedError() {
 	errUnexpectedError := errors.New("unexpected error")
 
-	s.mockStorage.GetWithdrawalsFunc = func(
+	s.mockStorage.GetTransactionsFunc = func(
 		ctx context.Context,
 		userId uuid.UUID,
+		operation objects.Operation,
 		offset,
 		limit int32,
 	) ([]entities.Transaction, error) {

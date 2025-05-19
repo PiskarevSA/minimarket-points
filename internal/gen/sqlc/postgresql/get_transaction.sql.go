@@ -19,22 +19,29 @@ SELECT
     order_number,
     operation,
     amount,
-    timestamp
+    proccessedAt
 FROM transactions
-WHERE user_id = $1::UUID
+WHERE user_id = $1::UUID 
+    AND ($2::VARCHAR(16) = '' OR operation = $2)
 ORDER BY id DESC
-OFFSET $2::INTEGER
-LIMIT $3::INTEGER
+OFFSET $3::INTEGER
+LIMIT $4::INTEGER
 `
 
 type GetTransactionsParams struct {
-	UserId uuid.UUID
-	Offset pgtype.Int4
-	Limit  pgtype.Int4
+	UserId    uuid.UUID
+	Operation string
+	Offset    pgtype.Int4
+	Limit     pgtype.Int4
 }
 
 func (q *Queries) GetTransactions(ctx context.Context, arg GetTransactionsParams) ([]Transaction, error) {
-	rows, err := q.db.Query(ctx, getTransactions, arg.UserId, arg.Offset, arg.Limit)
+	rows, err := q.db.Query(ctx, getTransactions,
+		arg.UserId,
+		arg.Operation,
+		arg.Offset,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +55,7 @@ func (q *Queries) GetTransactions(ctx context.Context, arg GetTransactionsParams
 			&i.OrderNumber,
 			&i.Operation,
 			&i.Amount,
-			&i.Timestamp,
+			&i.Proccessedat,
 		); err != nil {
 			return nil, err
 		}

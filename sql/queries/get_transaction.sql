@@ -5,9 +5,10 @@ SELECT
     order_number,
     operation,
     amount,
-    timestamp
+    proccessedAt
 FROM transactions
-WHERE user_id = @user_id::UUID
+WHERE user_id = @user_id::UUID 
+    AND (@operation::VARCHAR(16) = '' OR operation = @operation)
 ORDER BY id DESC
 OFFSET sqlc.narg('offset')::INTEGER
 LIMIT sqlc.narg('limit')::INTEGER;

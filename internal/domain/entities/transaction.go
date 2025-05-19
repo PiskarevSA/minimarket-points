@@ -18,10 +18,7 @@ type Transaction struct {
 	proccessedAt time.Time
 }
 
-var (
-	NilTransaction  = Transaction{}
-	NilTransactions = []Transaction{}
-)
+var NilTransaction = Transaction{}
 
 func NewTransaction[AmountT string | pgtype.Numeric](
 	id int32,

@@ -9,26 +9,18 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/PiskarevSA/minimarket-points/internal/domain/entities"
+	"github.com/PiskarevSA/minimarket-points/internal/domain/objects"
 	"github.com/PiskarevSA/minimarket-points/internal/repo"
 )
 
-type GetWithdrawalsRepo interface {
-	GetWithdrawals(
-		ctx context.Context,
-		userId uuid.UUID,
-		offset int32,
-		limit int32,
-	) (txs []entities.Transaction, err error)
-}
-
 type GetWithdrawals struct {
 	limitMax int32
-	storage  GetWithdrawalsRepo
+	storage  GetTransactionsRepo
 }
 
 func NewGetWithdrawals(
 	limitMax int32,
-	storage GetWithdrawalsRepo,
+	storage GetTransactionsRepo,
 ) *GetWithdrawals {
 	return &GetWithdrawals{
 		limitMax: limitMax,
@@ -74,10 +66,16 @@ func (u *GetWithdrawals) Do(
 
 	offset, limit, err := u.validatePagination(rawLimit, rawLimit)
 	if err != nil {
-		return entities.NilTransactions, err
+		return nil, err
 	}
 
-	txs, err = u.storage.GetWithdrawals(ctx, userId, offset, limit)
+	txs, err = u.storage.GetTransactions(
+		ctx,
+		userId,
+		objects.OperationWithdraw,
+		offset,
+		limit,
+	)
 	if err != nil {
 		if !errors.Is(err, repo.ErrNoTransactionsFound) {
 			log.Error().
@@ -86,10 +84,10 @@ func (u *GetWithdrawals) Do(
 				Str("op", op).
 				Msg("failed to get transactions from storage")
 
-			return entities.NilTransactions, err
+			return nil, err
 		}
 
-		return entities.NilTransactions, nil
+		return nil, nil
 	}
 
 	return txs, nil

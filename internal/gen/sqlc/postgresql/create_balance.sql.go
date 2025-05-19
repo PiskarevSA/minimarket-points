@@ -18,48 +18,45 @@ WITH balance_exists AS (
     SELECT EXISTS (
         SELECT 1
         FROM balances
-        WHERE user_id = $1
+        WHERE user_id = $1@@UUID
     ) AS exists_flag
 )
 INSERT INTO balances (
     user_id,
     available,
-    withdrawn
-)
-SELECT 
-    user_id, 
-    available, 
     withdrawn,
     updated_at
-FROM (
-    SELECT
-        $1 AS user_id,
-        CASE
-            WHEN $2::VARCHAR(16) = 'DEPOSIT' THEN $3
-            ELSE
-                CASE
-                    WHEN (SELECT exists_flag FROM balance_exists) THEN 0
-                    ELSE -1
-                END
-        END AS available,
-        CASE
-            WHEN $2 = 'WITHDRAW' THEN $3
-            ELSE 0
-        END AS withdrawn,
-        $4 AS updated_at
 )
+SELECT
+    $1 AS user_id,
+    CASE
+    WHEN $2::VARCHAR(16) = 'DEPOSIT' THEN $3
+    ELSE (
+        CASE
+            WHEN (SELECT exists_flag FROM balance_exists) THEN 0
+            ELSE -1
+        END
+    )
+    END AS available,
+    CASE
+        WHEN $2 = 'WITHDRAW' THEN $3
+        ELSE 0
+    END AS withdrawn,
+    $4 AS updated_at
 ON CONFLICT (user_id) DO UPDATE
 SET
-    available = balances.available +
-        CASE
-            WHEN $2 = 'DEPOSIT' THEN $3
-            ELSE -($3)
-        END,
-    withdrawn = balances.withdrawn +
-        CASE
-            WHEN $2 = 'DEPOSIT' THEN 0
-            ELSE $3
-        END,
+    available = balances.available + (
+    CASE
+        WHEN $2 = 'DEPOSIT' THEN $3
+        ELSE -($3)
+    END
+    ),
+    withdrawn = balances.withdrawn + (
+    CASE
+        WHEN $2 = 'WITHDRAW' THEN $3
+        ELSE 0
+    END
+    ),
     updated_at = $4
 `
 
